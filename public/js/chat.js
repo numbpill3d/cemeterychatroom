@@ -15,11 +15,12 @@ export function initChat(onMessage) {
   });
 }
 
-export function sendMessage(uid, username, text) {
+export function sendMessage(uid, username, text, postName) {
   if (!chatRef) return;
   return push(chatRef, {
     uid,
     username,
+    postName: postName || username,
     text: text.trim(),
     timestamp: Date.now()
   });

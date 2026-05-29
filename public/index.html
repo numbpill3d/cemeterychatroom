@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cemetery chatroom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=DotGothic16&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- loading -->
+<div id="loading-screen" class="loading-screen">entering the darkness...</div>
+
+<!-- auth overlay -->
+<div id="auth-overlay" class="auth-overlay" style="display:none">
+  <div class="auth-box">
+    <div class="auth-logo">cemetery chatroom</div>
+    <div class="auth-sub">est. 2003 &mdash; we never log off</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login">enter</button>
+      <button class="auth-tab" id="tab-signup">rise</button>
+    </div>
+
+    <form id="login-form" class="auth-form">
+      <input type="email" id="login-email" placeholder="your epitaph address" autocomplete="email" required>
+      <input type="password" id="login-password" placeholder="your secret" autocomplete="current-password" required>
+      <div id="login-error" class="auth-error"></div>
+      <button type="submit" class="btn auth-submit">enter the cemetery</button>
+    </form>
+
+    <form id="signup-form" class="auth-form" style="display:none">
+      <input type="text" id="signup-username" placeholder="choose your name (2-20 chars)" autocomplete="username" required>
+      <input type="email" id="signup-email" placeholder="your email (for recovery only)" autocomplete="email" required>
+      <input type="password" id="signup-password" placeholder="choose a password (6+ chars)" autocomplete="new-password" minlength="6" required>
+      <div id="signup-error" class="auth-error"></div>
+      <button type="submit" class="btn auth-submit">rise from the grave</button>
+    </form>
+  </div>
+</div>
+
+<!-- main app (hidden until auth) -->
+<div id="app" style="display:none">
+  <audio id="sigh" preload="auto" src="https://cdn.freesound.org/previews/399/399642_7037-lq.mp3"></audio>
+
+  <img class="candle top-left"    src="https://media4.giphy.com/media/4n1kDOsXgfrhMXn5LL/giphy.gif" alt="">
+  <img class="candle top-right"   src="https://media4.giphy.com/media/4n1kDOsXgfrhMXn5LL/giphy.gif" alt="">
+  <img class="candle bottom-left" src="https://media4.giphy.com/media/4n1kDOsXgfrhMXn5LL/giphy.gif" alt="">
+  <img class="candle bottom-right"src="https://media4.giphy.com/media/4n1kDOsXgfrhMXn5LL/giphy.gif" alt="">
+  <div class="scanlines"></div>
+
+  <div class="wrap">
+    <header>
+      <h1 class="title">cemetery chatroom</h1>
+      <div class="user-bar">
+        <span id="current-username-display"></span>
+        <button id="logout-btn" class="btn-inline">[leave]</button>
+      </div>
+      <nav>
+        <a href="#" class="nav-link active" data-page="home">[home]</a>
+        <a href="#" class="nav-link" data-page="forum">[forum]</a>
+        <a href="#" class="nav-link" data-page="about">[about]</a>
+        <a href="#" class="nav-link" data-page="links">[links]</a>
+      </nav>
+    </header>
+
+    <main class="layout">
+      <div class="main-box">
+
+        <!-- HOME: live chat -->
+        <section id="page-home" class="page active">
+          <div class="irc-welcome">welcome to the cemetery chatroom. est. 2003. we never log off.</div>
+          <div id="irc-log" class="irc-box"></div>
+          <form id="irc-form" class="irc-input">
+            <input id="irc-input" type="text" placeholder="say something into the dark..." autocomplete="off" maxlength="300">
+            <button type="submit">send</button>
+          </form>
+        </section>
+
+        <!-- FORUM -->
+        <section id="page-forum" class="page">
+          <h2 class="forum-title">the catacombs</h2>
+
+          <div id="forum-list">
+            <div style="text-align:right; margin-bottom:12px;">
+              <button id="new-topic-btn" class="btn">new topic</button>
+            </div>
+
+            <div class="category">
+              <div class="cat-head">
+                <h3>graveyard gossip</h3>
+                <p>whispers, drama, sightings</p>
+              </div>
+              <table class="forum-table">
+                <thead><tr><th>Topic</th><th style="width:70px">Replies</th><th style="width:160px">Last Post</th></tr></thead>
+                <tbody id="tbl-gossip"></tbody>
+              </table>
+            </div>
+
+            <div class="category">
+              <div class="cat-head">
+                <h3>music crypt</h3>
+                <p>post what rots in your headphones</p>
+              </div>
+              <table class="forum-table">
+                <thead><tr><th>Topic</th><th style="width:70px">Replies</th><th style="width:160px">Last Post</th></tr></thead>
+                <tbody id="tbl-music"></tbody>
+              </table>
+            </div>
+
+            <div class="category">
+              <div class="cat-head">
+                <h3>art and poetry</h3>
+                <p>share your beautiful decay</p>
+              </div>
+              <table class="forum-table">
+                <thead><tr><th>Topic</th><th style="width:70px">Replies</th><th style="width:160px">Last Post</th></tr></thead>
+                <tbody id="tbl-art"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="thread-view" style="display:none">
+            <div class="thread-header">
+              <button id="back-btn" class="btn">back</button>
+              <div>
+                <span id="thread-title"></span>
+                <span id="reply-count" class="meta" style="margin-left:10px;"></span>
+              </div>
+            </div>
+            <div id="thread-posts"></div>
+            <div class="reply-box">
+              <textarea id="reply-text" placeholder="write your reply..."></textarea>
+              <div style="text-align:right; margin-top:8px;">
+                <button id="reply-btn" class="btn">post</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="new-topic-modal">
+            <div class="modal-box">
+              <h3>new topic</h3>
+              <form id="new-topic-form">
+                <div style="margin-bottom:10px;">
+                  <select id="nt-cat" class="form-select">
+                    <option value="gossip">graveyard gossip</option>
+                    <option value="music">music crypt</option>
+                    <option value="art">art and poetry</option>
+                  </select>
+                </div>
+                <div style="margin-bottom:10px;">
+                  <input id="nt-title" class="form-input" placeholder="topic title" maxlength="80" required>
+                </div>
+                <div style="margin-bottom:12px;">
+                  <textarea id="nt-body" class="form-textarea" placeholder="your opening post..." required></textarea>
+                </div>
+                <div style="display:flex; gap:8px; justify-content:flex-end;">
+                  <button type="button" id="cancel-topic-btn" class="btn">cancel</button>
+                  <button type="submit" class="btn">create</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABOUT -->
+        <section id="page-about" class="page">
+          <div class="about-content">
+            <h2>about the keeper</h2>
+            <p>i am lusynth. 23. scorpio rising. i built this place in late 2003 on an old dell after my parents went to sleep. the other chatrooms were too bright and too loud and full of people pretending to be happy.</p>
+            <p>this is not a profile shrine anymore. it is a social crypt for night owls, insomniacs, baby bats, and anyone who feels more alive after midnight. we talk in the main chat, we rot together in the forums, we share music that hurts good.</p>
+            <p>there are no algorithms here. no logging. no clout. just the same five to ten souls circling the same digital graveyard for twenty years. if you found us, you were meant to.</p>
+            <p>rules are simple: be kind to the other monsters, do not bring the daylight in, and always haunt responsibly.</p>
+            <p>stay cold,<br>lusynth</p>
+          </div>
+        </section>
+
+        <!-- LINKS -->
+        <section id="page-links" class="page">
+          <div style="text-align:center; color:#9a86ad; font-style:italic; margin-bottom:10px;">places we haunt when we are not here</div>
+          <div class="graves">
+            <a href="#" class="grave-link">dead diary livejournal</a>
+            <a href="#" class="grave-link">night blooming radio</a>
+            <a href="#" class="grave-link">southern gothic archive</a>
+            <a href="#" class="grave-link">vampire freaks ruins</a>
+            <a href="#" class="grave-link">type o negative shrine</a>
+            <a href="#" class="grave-link">leave a whisper</a>
+          </div>
+        </section>
+
+      </div><!-- /main-box -->
+
+      <aside class="sidebar">
+        <h2>currently rotting</h2>
+        <div id="sidebar-user-list" class="user-list"></div>
+        <div id="sidebar-count"></div>
+      </aside>
+    </main>
+
+    <footer>forever online since 2003 &mdash; we never log off</footer>
+  </div>
+</div><!-- /app -->
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

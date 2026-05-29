@@ -131,7 +131,7 @@ $ircForm.addEventListener('submit', async e => {
 });
 
 // ── presence sidebar ───────────────────────────────────────────────
-const SKULL = `<svg width="11" height="11" viewBox="0 0 24 24" fill="#7a6888" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C7.5 2 4 5.2 4 9.5V12c-1.1.6-2 1.7-2 3 0 1.7 1.3 3 3 3h1v4c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-4h1c1.7 0 3-1.3 3-3 0-1.3-.9-2.4-2-3v-2.5C20 5.2 16.5 2 12 2zM8.5 9c.8 0 1.5.7 1.5 1.5S9.3 12 8.5 12 7 11.3 7 10.5 7.7 9 8.5 9zm7 0c.8 0 1.5.7 1.5 1.5S16.3 12 15.5 12 14 11.3 14 10.5 14.7 9 15.5 9zM10 16h4c.6 0 1 .4 1 1s-.4 1-1 1h-4c-.6 0-1-.4-1-1s.4-1 1-1z"/></svg>`;
+const SKULL = `<span class="presence-glyph">&#x2020;</span>`;
 
 function onPresenceUpdate(users) {
   $userList.innerHTML = '';

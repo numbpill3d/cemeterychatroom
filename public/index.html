@@ -10,9 +10,37 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<script>
+  // background rotation — picks a random image, rotates every 3 hours
+  (function() {
+    var IMGS = [
+      'https://i.ibb.co/jZMCsyKH/ae03fc6fc2b42feff724d1803ac401ca.jpg',
+      'https://i.ibb.co/M5JfywZV/7a7bd222f5cfdd5658c443ad8a5248f0.jpg',
+      'https://i.ibb.co/gLVWmhsp/ac52ec7802c7fa2f6f9f9706e046d7ce.jpg',
+      'https://i.ibb.co/RkXx0Z3B/a948e91145241546d14982ba1dc645ed.jpg',
+      'https://i.ibb.co/hF0VnmMQ/cafab89f102b9c37eb19b2c63e98f724.jpg',
+      'https://i.ibb.co/G3QT4RFn/e88d556de703f68a0901e66a4202e054.gif'
+    ];
+    var INTERVAL = 3 * 60 * 60 * 1000;
+    var stored   = localStorage.getItem('bg_idx');
+    var lastTime = parseInt(localStorage.getItem('bg_time') || '0');
+    var now      = Date.now();
+    var idx;
+    if (stored === null || (now - lastTime) > INTERVAL) {
+      var prev = stored !== null ? parseInt(stored) : -1;
+      do { idx = Math.floor(Math.random() * IMGS.length); } while (idx === prev && IMGS.length > 1);
+      localStorage.setItem('bg_idx',  String(idx));
+      localStorage.setItem('bg_time', String(now));
+    } else {
+      idx = parseInt(stored);
+      if (idx < 0 || idx >= IMGS.length) idx = 0;
+    }
+    document.body.style.backgroundImage = "url('" + IMGS[idx] + "')";
+  })();
+</script>
 
 <!-- loading -->
-<div id="loading-screen" class="loading-screen">connecting to the dark...</div>
+<div id="loading-screen" class="loading-screen">connecting...</div>
 
 <!-- auth overlay -->
 <div id="auth-overlay" class="auth-overlay" style="display:none">
@@ -20,23 +48,23 @@
     <div class="auth-logo">/goth/ &mdash; cemetery chatroom</div>
     <div class="auth-sub">est. 2003 &mdash; we never log off</div>
     <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login">[enter]</button>
-      <button class="auth-tab" id="tab-signup">[rise]</button>
+      <button class="auth-tab active" id="tab-login">log in</button>
+      <button class="auth-tab" id="tab-signup">sign up</button>
     </div>
 
     <form id="login-form" class="auth-form">
-      <input type="email" id="login-email" placeholder="email" autocomplete="email" required>
+      <input type="email"    id="login-email"    placeholder="email"    autocomplete="email"            required>
       <input type="password" id="login-password" placeholder="password" autocomplete="current-password" required>
       <div id="login-error" class="auth-error"></div>
-      <button type="submit" class="btn auth-submit">[enter the cemetery]</button>
+      <button type="submit" class="btn auth-submit">log in</button>
     </form>
 
     <form id="signup-form" class="auth-form" style="display:none">
-      <input type="text" id="signup-username" placeholder="username (2-20 chars)" autocomplete="username" required>
-      <input type="email" id="signup-email" placeholder="email" autocomplete="email" required>
-      <input type="password" id="signup-password" placeholder="password (6+ chars)" autocomplete="new-password" minlength="6" required>
+      <input type="text"     id="signup-username" placeholder="username (2-20 chars)"  autocomplete="username"     required>
+      <input type="email"    id="signup-email"    placeholder="email"                  autocomplete="email"        required>
+      <input type="password" id="signup-password" placeholder="password (6+ chars)"    autocomplete="new-password" minlength="6" required>
       <div id="signup-error" class="auth-error"></div>
-      <button type="submit" class="btn auth-submit">[rise from the grave]</button>
+      <button type="submit" class="btn auth-submit">create account</button>
     </form>
   </div>
 </div>
@@ -55,11 +83,12 @@
     <header>
       <div class="board-header">
         <span class="board-id">/goth/</span>
+        <span class="board-sep">&mdash;</span>
         <span class="board-name">cemetery chatroom</span>
       </div>
       <div class="user-bar">
         <span id="current-username-display"></span>
-        <button id="logout-btn" class="btn-inline">[leave]</button>
+        <button id="logout-btn" class="btn-inline">[log out]</button>
       </div>
       <nav>
         <a href="#" class="nav-link active" data-page="home">[home]</a>
@@ -82,7 +111,7 @@
             </div>
             <div class="chan-form-row">
               <span class="chan-form-label">Post</span>
-              <input id="irc-input" type="text" class="chan-field chan-field-msg" placeholder="say something into the dark..." autocomplete="off" maxlength="300">
+              <input id="irc-input" type="text" class="chan-field chan-field-msg" placeholder="say something..." autocomplete="off" maxlength="300">
               <button type="submit" class="chan-btn">[post]</button>
             </div>
           </form>
@@ -129,7 +158,6 @@
               </table>
             </div>
 
-            <!-- new thread modal (inside forum section) -->
             <div id="new-topic-modal">
               <div class="modal-box">
                 <h3>new thread</h3>
@@ -217,21 +245,17 @@
 </div><!-- /app -->
 
 <script>
-  // catch any module-level crashes and show them on the loading screen
-  window.addEventListener('error', e => {
-    const el = document.getElementById('loading-screen');
-    if (el) el.textContent = 'error: ' + (e.message || e.filename || 'unknown — open devtools console for details');
+  window.addEventListener('error', function(e) {
+    var el = document.getElementById('loading-screen');
+    if (el && el.style.display !== 'none') el.textContent = 'error: ' + (e.message || 'check devtools console');
   });
-  window.addEventListener('unhandledrejection', e => {
-    const el = document.getElementById('loading-screen');
-    if (el) el.textContent = 'error: ' + (e.reason?.message || String(e.reason) || 'promise rejected — open devtools console');
+  window.addEventListener('unhandledrejection', function(e) {
+    var el = document.getElementById('loading-screen');
+    if (el && el.style.display !== 'none') el.textContent = 'error: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
   });
-  // fallback timeout — if firebase never resolves, show a hint
-  setTimeout(() => {
-    const el = document.getElementById('loading-screen');
-    if (el && el.style.display !== 'none') {
-      el.textContent = 'still connecting... check devtools console (F12) for errors';
-    }
+  setTimeout(function() {
+    var el = document.getElementById('loading-screen');
+    if (el && el.style.display !== 'none') el.textContent = 'still connecting... open devtools (F12) for details';
   }, 6000);
 </script>
 <script type="module" src="js/app.js"></script>

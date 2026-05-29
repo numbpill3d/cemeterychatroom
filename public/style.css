@@ -2,9 +2,12 @@
 html, body { margin: 0; padding: 0; }
 
 body {
-  background: #050508 url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2069&auto=format&fit=crop') center/cover fixed;
+  background-color: #050508;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   color: #c8b8de;
-  font-family: 'MS Gothic', 'MS PGothic', '\30CEFC30B4\30B7\30C3\30AF', 'DotGothic16', monospace;
+  font-family: 'MS Gothic', 'MS PGothic', 'DotGothic16', monospace;
   cursor: crosshair;
   min-height: 100vh;
   overflow-x: hidden;
@@ -82,16 +85,18 @@ a, button { cursor: crosshair; }
 .auth-logo {
   font-family: 'MS Gothic', 'DotGothic16', monospace;
   color: #C084FC;
-  font-size: 1rem;
+  font-size: .95rem;
   text-align: center;
-  margin-bottom: 2px;
-  letter-spacing: 1px;
+  margin-bottom: 4px;
+  letter-spacing: 2px;
+  border-bottom: 1px solid #2a1a3a;
+  padding-bottom: 12px;
 }
 .auth-sub {
   text-align: center;
   color: #4a3c58;
-  font-size: .75rem;
-  margin-bottom: 18px;
+  font-size: .72rem;
+  margin: 8px 0 16px;
   letter-spacing: 1px;
 }
 
@@ -151,20 +156,14 @@ header { text-align: center; margin-bottom: 14px; }
 .board-header {
   display: inline-flex;
   align-items: baseline;
-  gap: 10px;
-  margin: 6px 0 10px;
+  gap: 8px;
+  margin: 6px 0 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2a1a3a;
 }
-.board-id {
-  color: #7a6888;
-  font-size: 1rem;
-  letter-spacing: 1px;
-}
-.board-name {
-  color: #C084FC;
-  font-size: 1rem;
-  text-shadow: 0 0 6px rgba(192,132,252,.35);
-  letter-spacing: 1px;
-}
+.board-id   { color: #6a5877; font-size: .95rem; letter-spacing: 1px; }
+.board-sep  { color: #3a2e48; font-size: .85rem; }
+.board-name { color: #C084FC; font-size: .95rem; letter-spacing: 1px; }
 
 .user-bar {
   font-size: .78rem;
@@ -183,21 +182,17 @@ header { text-align: center; margin-bottom: 14px; }
 }
 .btn-inline:hover { color: #C084FC; }
 
-nav { margin-bottom: 16px; }
+nav { margin-bottom: 16px; border-bottom: 1px solid #1a0f24; padding-bottom: 10px; }
 .nav-link {
-  color: #9a80b0;
+  color: #7a6888;
   text-decoration: none;
-  margin: 0 8px;
-  font-size: .88rem;
-  opacity: .85;
-  transition: all .15s;
+  margin: 0 6px;
+  font-size: .85rem;
+  transition: color .15s;
   display: inline-block;
 }
-.nav-link:hover, .nav-link.active {
-  opacity: 1;
-  color: #C084FC;
-  text-shadow: 0 0 5px rgba(192,132,252,.4);
-}
+.nav-link:hover { color: #a890c0; }
+.nav-link.active { color: #C084FC; }
 
 /* ── grid ────────────────────────────────────────────────────────── */
 .layout {
@@ -234,18 +229,26 @@ nav { margin-bottom: 16px; }
 .user {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #8a7898;
+  gap: 5px;
+  color: #9a88ac;
   font-size: .82rem;
-  margin: 6px 0;
+  padding: 3px 0;
+  border-bottom: 1px solid #160e20;
 }
+.user:last-child { border-bottom: none; }
 .user:hover { color: #C084FC; }
+.presence-glyph {
+  color: #5a3a6a;
+  font-size: .8rem;
+  flex-shrink: 0;
+}
 #sidebar-count {
-  margin-top: 10px;
+  margin-top: 8px;
   color: #4a3c58;
   font-size: .72rem;
   border-top: 1px solid #1d1129;
   padding-top: 8px;
+  text-align: center;
 }
 
 /* ── pages ───────────────────────────────────────────────────────── */
@@ -263,25 +266,25 @@ nav { margin-bottom: 16px; }
 #irc-log::-webkit-scrollbar-thumb { background: #2a1a3a; }
 
 .chan-post {
-  padding: 5px 10px 6px;
-  border-bottom: 1px solid #120a1a;
+  padding: 6px 12px 7px;
+  border-bottom: 1px solid #110819;
 }
-.chan-post:hover { background: rgba(192,132,252,.025); }
+.chan-post:hover { background: rgba(192,132,252,.03); }
+.chan-post:first-child { border-top: none; }
 
 .chan-meta {
-  margin-bottom: 2px;
-  font-size: .78rem;
+  margin-bottom: 3px;
+  font-size: .77rem;
   line-height: 1.3;
 }
-.chan-name  { color: #C084FC; margin-right: 7px; font-weight: normal; }
-.chan-stamp { color: #4a3c58; margin-right: 6px; }
-.chan-num   { color: #6a5877; }
+.chan-name  { color: #C084FC; margin-right: 8px; }
+.chan-stamp { color: #4a3a58; margin-right: 6px; }
+.chan-num   { color: #5a4a6a; }
 .chan-body  {
-  color: #c0afd8;
+  color: #baadd0;
   font-size: .88rem;
-  line-height: 1.45;
+  line-height: 1.5;
   word-break: break-word;
-  padding-left: 1px;
 }
 
 /* ── chan post form ───────────────────────────────────────────────── */
@@ -353,22 +356,25 @@ nav { margin-bottom: 16px; }
 }
 
 .category {
-  margin-bottom: 20px;
-  border: 1px solid #1d1129;
+  margin-bottom: 18px;
+  border: 1px solid #1a0f24;
 }
 .cat-head {
-  padding: 7px 10px;
-  background: rgba(14,9,20,.8);
-  border-bottom: 1px solid #1d1129;
+  padding: 6px 10px;
+  background: rgba(10,6,16,.9);
+  border-bottom: 1px solid #1a0f24;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
 }
 .cat-head h3 {
   margin: 0;
   color: #C084FC;
-  font-size: .88rem;
+  font-size: .85rem;
   font-weight: normal;
   letter-spacing: 1px;
 }
-.cat-head p { margin: 1px 0 0; color: #5a4c68; font-size: .75rem; }
+.cat-head p { margin: 0; color: #4a3c58; font-size: .72rem; }
 
 .forum-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
 .forum-table th {

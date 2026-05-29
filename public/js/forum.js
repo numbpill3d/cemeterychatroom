@@ -1,62 +1,51 @@
-import { db } from './firebase.js';
-import {
-  collection, doc, addDoc, getDocs,
-  query, where, orderBy,
-  updateDoc, increment, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { supabase } from './supabase.js';
 
 export async function getThreadsByCategory(category) {
-  const q = query(
-    collection(db, 'threads'),
-    where('category', '==', category),
-    orderBy('lastPostAt', 'desc')
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const { data, error } = await supabase
+    .from('threads')
+    .select('*')
+    .eq('category', category)
+    .order('last_post_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function getPosts(threadId) {
-  const q = query(
-    collection(db, 'threads', threadId, 'posts'),
-    orderBy('createdAt', 'asc')
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('thread_id', threadId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function createThread(uid, username, category, title, body) {
-  const now = serverTimestamp();
-  const threadRef = await addDoc(collection(db, 'threads'), {
-    category,
-    title,
-    authorUid: uid,
-    authorUsername: username,
-    createdAt: now,
-    lastPostAt: now,
-    lastPostUser: username,
-    replyCount: 1
-  });
-  await addDoc(collection(db, 'threads', threadRef.id, 'posts'), {
-    authorUid: uid,
-    authorUsername: username,
-    content: body,
-    createdAt: now
-  });
-  return threadRef.id;
+  const { data: thread, error: te } = await supabase
+    .from('threads')
+    .insert({ category, title, author_uid: uid, author_username: username, last_post_user: username, reply_count: 1 })
+    .select()
+    .single();
+  if (te) throw te;
+
+  const { error: pe } = await supabase
+    .from('posts')
+    .insert({ thread_id: thread.id, author_uid: uid, author_username: username, content: body });
+  if (pe) throw pe;
+
+  return thread.id;
 }
 
 export async function createPost(uid, username, threadId, content) {
-  const now = serverTimestamp();
-  await addDoc(collection(db, 'threads', threadId, 'posts'), {
-    authorUid: uid,
-    authorUsername: username,
-    content,
-    createdAt: now
-  });
-  await updateDoc(doc(db, 'threads', threadId), {
-    replyCount: increment(1),
-    lastPostAt: now,
-    lastPostUser: username
-  });
-}
+  const { error: pe } = await supabase
+    .from('posts')
+    .insert({ thread_id: threadId, author_uid: uid, author_username: username, content });
+  if (pe) throw pe;
 
+  const { data: t } = await supabase.from('threads').select('reply_count').eq('id', threadId).single();
+  await supabase.from('threads').update({
+    reply_count: (t?.reply_count || 0) + 1,
+    last_post_at: new Date().toISOString(),
+    last_post_user: username
+  }).eq('id', threadId);
+}

@@ -1,30 +1,33 @@
-import { rtdb } from './firebase.js';
-import {
-  ref, set, remove, onDisconnect, onValue, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
+import { supabase } from './supabase.js';
+
+let presenceChannel = null;
+let presenceCb = null;
 
 export function setupPresence(uid, username) {
-  const connectedRef = ref(rtdb, '.info/connected');
-  const presRef = ref(rtdb, `presence/${uid}`);
-
-  onValue(connectedRef, (snap) => {
-    if (!snap.val()) return;
-    onDisconnect(presRef).remove();
-    set(presRef, { username, online: true, lastSeen: serverTimestamp() });
+  presenceChannel = supabase.channel('online-users', {
+    config: { presence: { key: uid } }
   });
+
+  presenceChannel
+    .on('presence', { event: 'sync' }, () => {
+      if (!presenceCb) return;
+      const state = presenceChannel.presenceState();
+      const users = Object.values(state).flatMap(a => a);
+      presenceCb(users);
+    })
+    .subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await presenceChannel.track({ username, online: true });
+      }
+    });
 }
 
-export function teardownPresence(uid) {
-  const presRef = ref(rtdb, `presence/${uid}`);
-  remove(presRef).catch(() => {});
+export function teardownPresence() {
+  presenceCb = null;
+  if (presenceChannel) { supabase.removeChannel(presenceChannel); presenceChannel = null; }
 }
 
 export function subscribeToPresence(callback) {
-  const allRef = ref(rtdb, 'presence');
-  const unsub = onValue(allRef, (snap) => {
-    const users = [];
-    snap.forEach(child => users.push(child.val()));
-    callback(users);
-  });
-  return unsub;
+  presenceCb = callback;
+  return () => { presenceCb = null; };
 }

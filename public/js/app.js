@@ -38,10 +38,11 @@ const $signupError = document.getElementById('signup-error');
 // ── helpers ────────────────────────────────────────────────────────
 function esc(s) {
   if (!s) return '';
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function getUsername(user) {
+  return user?.user_metadata?.username || user?.email?.split('@')[0] || 'Anonymous';
 }
 
 function chanDate(ts) {
@@ -54,8 +55,7 @@ function chanDate(ts) {
 
 function fmtTime(ts) {
   if (!ts) return '--:--';
-  const d = typeof ts.toDate === 'function' ? ts.toDate() : new Date(ts);
-  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 }
 
 // ── auth state ─────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ onAuth(async (user) => {
     $app.style.display = '';
     initApp();
   } else {
-    if (currentUser) teardownPresence(currentUser.uid);
+    if (currentUser) teardownPresence();
     currentUser = null;
     chatPostNum = 0;
     destroyChatListener();
@@ -78,10 +78,11 @@ onAuth(async (user) => {
 });
 
 function initApp() {
-  $userDisplay.textContent = currentUser.displayName;
-  if ($postName) $postName.value = currentUser.displayName;
+  const username = getUsername(currentUser);
+  $userDisplay.textContent = username;
+  if ($postName) $postName.value = username;
   initChat(onChatMessage);
-  setupPresence(currentUser.uid, currentUser.displayName);
+  setupPresence(currentUser.id, username);
   presenceUnsub = subscribeToPresence(onPresenceUpdate);
 }
 
@@ -107,15 +108,10 @@ function onChatMessage(msg) {
 
   const post = document.createElement('div');
   post.className = 'chan-post';
-  post.id = 'p' + chatPostNum;
-
-  const name  = esc(msg.postName || msg.username || 'Anonymous');
-  const stamp = chanDate(msg.timestamp);
-
   post.innerHTML =
     `<div class="chan-meta">` +
-      `<span class="chan-name">${name}</span>` +
-      `<span class="chan-stamp">${stamp}</span>` +
+      `<span class="chan-name">${esc(msg.post_name || msg.username)}</span>` +
+      `<span class="chan-stamp">${chanDate(msg.created_at)}</span>` +
       `<span class="chan-num">No.${chatPostNum}</span>` +
     `</div>` +
     `<div class="chan-body">${esc(msg.text)}</div>`;
@@ -128,9 +124,9 @@ $ircForm.addEventListener('submit', async e => {
   e.preventDefault();
   const text = $ircInput.value.trim();
   if (!text || !currentUser) return;
-  const postName = ($postName?.value.trim()) || currentUser.displayName;
+  const postName = ($postName?.value.trim()) || getUsername(currentUser);
   $ircInput.value = '';
-  try { await sendMessage(currentUser.uid, currentUser.displayName, text, postName); }
+  try { await sendMessage(currentUser.id, getUsername(currentUser), text, postName); }
   catch (err) { console.error('chat:', err); }
 });
 
@@ -160,24 +156,23 @@ async function loadForum() {
     renderList('gossip', gossip);
     renderList('music', music);
     renderList('art', art);
-  } catch (e) {
-    console.error('forum load:', e);
-  }
+  } catch (e) { console.error('forum load:', e); }
 }
 
 function renderList(cat, threads) {
   const tbody = document.getElementById('tbl-' + cat);
   if (!tbody) return;
   tbody.innerHTML = '';
-  if (threads.length === 0) {
+  if (!threads.length) {
     tbody.innerHTML = `<tr><td colspan="3" class="empty-row">no threads yet</td></tr>`;
     return;
   }
   threads.forEach(t => {
     const tr = document.createElement('tr');
-    tr.dataset.id = t.id;
-    const lt = t.lastPostAt ? fmtTime(t.lastPostAt) : '--:--';
-    tr.innerHTML = `<td><a href="#" class="topic-link">${esc(t.title)}</a></td><td class="replies meta">${t.replyCount || 0}</td><td class="last meta">${esc(t.lastPostUser || '')} ${lt}</td>`;
+    tr.innerHTML =
+      `<td><a href="#" class="topic-link">${esc(t.title)}</a></td>` +
+      `<td class="replies meta">${t.reply_count || 0}</td>` +
+      `<td class="last meta">${esc(t.last_post_user || '')} ${fmtTime(t.last_post_at)}</td>`;
     tr.querySelector('a').addEventListener('click', e => {
       e.preventDefault();
       openThread(t.id, t.title);
@@ -201,11 +196,10 @@ async function openThread(id, title) {
     posts.forEach((p, i) => {
       const d = document.createElement('div');
       d.className = 'chan-post';
-      const stamp = p.createdAt ? chanDate(p.createdAt.toDate ? p.createdAt.toDate() : new Date(p.createdAt)) : '--';
       d.innerHTML =
         `<div class="chan-meta">` +
-          `<span class="chan-name">${esc(p.authorUsername)}</span>` +
-          `<span class="chan-stamp">${stamp}</span>` +
+          `<span class="chan-name">${esc(p.author_username)}</span>` +
+          `<span class="chan-stamp">${chanDate(p.created_at)}</span>` +
           `<span class="chan-num">No.${i + 1}</span>` +
         `</div>` +
         `<div class="chan-body">${esc(p.content)}</div>`;
@@ -230,7 +224,7 @@ document.getElementById('reply-btn').addEventListener('click', async () => {
   if (!text || !currentThread || !currentUser) return;
   $replyText.value = '';
   try {
-    await createPost(currentUser.uid, currentUser.displayName, currentThread, text);
+    await createPost(currentUser.id, getUsername(currentUser), currentThread, text);
     await openThread(currentThread, currentThreadTitle);
   } catch (e) { console.error('reply:', e); }
 });
@@ -238,7 +232,6 @@ document.getElementById('reply-btn').addEventListener('click', async () => {
 document.getElementById('new-topic-btn').addEventListener('click', () => {
   $newTopicModal.style.display = 'flex';
 });
-
 document.getElementById('cancel-topic-btn').addEventListener('click', () => {
   $newTopicModal.style.display = 'none';
 });
@@ -251,7 +244,7 @@ $newTopicForm.addEventListener('submit', async e => {
   const body  = document.getElementById('nt-body').value.trim();
   if (!title || !body) return;
   try {
-    const id = await createThread(currentUser.uid, currentUser.displayName, cat, title, body);
+    const id = await createThread(currentUser.id, getUsername(currentUser), cat, title, body);
     $newTopicModal.style.display = 'none';
     $newTopicForm.reset();
     await loadForum();
@@ -266,7 +259,6 @@ document.getElementById('tab-login').addEventListener('click', () => {
   document.getElementById('tab-login').classList.add('active');
   document.getElementById('tab-signup').classList.remove('active');
 });
-
 document.getElementById('tab-signup').addEventListener('click', () => {
   $loginForm.style.display = 'none';
   $signupForm.style.display = '';
@@ -279,11 +271,8 @@ $loginForm.addEventListener('submit', async e => {
   $loginError.textContent = '';
   const email    = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
-  try {
-    await signIn(email, password);
-  } catch (err) {
-    $loginError.textContent = friendlyAuthError(err.code) || err.message;
-  }
+  try { await signIn(email, password); }
+  catch (err) { $loginError.textContent = friendlyError(err.message); }
 });
 
 $signupForm.addEventListener('submit', async e => {
@@ -292,25 +281,18 @@ $signupForm.addEventListener('submit', async e => {
   const username = document.getElementById('signup-username').value.trim();
   const email    = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
-  try {
-    await signUp(username, email, password);
-  } catch (err) {
-    $signupError.textContent = err.message;
-  }
+  try { await signUp(username, email, password); }
+  catch (err) { $signupError.textContent = err.message; }
 });
 
 $logoutBtn.addEventListener('click', () => logOut());
 
-function friendlyAuthError(code) {
-  const map = {
-    'auth/user-not-found':      'not found in the dark',
-    'auth/wrong-password':      'not found in the dark',
-    'auth/invalid-credential':  'not found in the dark',
-    'auth/too-many-requests':   'too many attempts. wait.',
-    'auth/invalid-email':       'invalid email',
-    'auth/email-already-in-use':'that email is already here'
-  };
-  return map[code] || null;
+function friendlyError(msg) {
+  if (!msg) return 'something went wrong';
+  if (msg.includes('Invalid login')) return 'not found in the dark';
+  if (msg.includes('Email not confirmed')) return 'check your email to confirm';
+  if (msg.includes('already registered')) return 'that email is already here';
+  return msg;
 }
 
 // ── sound ──────────────────────────────────────────────────────────

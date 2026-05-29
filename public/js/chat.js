@@ -1,36 +1,40 @@
-import { rtdb } from './firebase.js';
-import {
-  ref, push, query, limitToLast, onChildAdded, off
-} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
+import { supabase } from './supabase.js';
 
-let chatRef = null;
-let activeQuery = null;
-let activeListener = null;
+let channel = null;
+const seen = new Set();
 
-export function initChat(onMessage) {
-  chatRef = ref(rtdb, 'chat/messages');
-  activeQuery = query(chatRef, limitToLast(150));
-  activeListener = onChildAdded(activeQuery, (snap) => {
-    onMessage(snap.val());
-  });
+export async function initChat(onMessage) {
+  seen.clear();
+  // load recent history
+  const { data } = await supabase
+    .from('messages')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(150);
+  if (data) data.reverse().forEach(m => { seen.add(m.id); onMessage(m); });
+
+  // subscribe to new messages
+  channel = supabase
+    .channel('messages-insert')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, ({ new: m }) => {
+      if (seen.has(m.id)) return;
+      seen.add(m.id);
+      onMessage(m);
+    })
+    .subscribe();
 }
 
-export function sendMessage(uid, username, text, postName) {
-  if (!chatRef) return;
-  return push(chatRef, {
-    uid,
+export async function sendMessage(uid, username, text, postName) {
+  const { error } = await supabase.from('messages').insert({
+    user_id: uid,
     username,
-    postName: postName || username,
-    text: text.trim(),
-    timestamp: Date.now()
+    post_name: postName || username,
+    text: text.trim()
   });
+  if (error) throw error;
 }
 
 export function destroyChatListener() {
-  if (activeQuery && activeListener) {
-    off(activeQuery, 'child_added', activeListener);
-  }
-  chatRef = null;
-  activeQuery = null;
-  activeListener = null;
+  if (channel) { supabase.removeChannel(channel); channel = null; }
+  seen.clear();
 }

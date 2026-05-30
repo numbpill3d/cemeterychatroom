@@ -148,14 +148,14 @@ function onPresenceUpdate(users) {
 // ── forum ──────────────────────────────────────────────────────────
 async function loadForum() {
   try {
-    const [gossip, music, art] = await Promise.all([
-      getThreadsByCategory('gossip'),
-      getThreadsByCategory('music'),
-      getThreadsByCategory('art')
+    const [feels, cult, net] = await Promise.all([
+      getThreadsByCategory('feels'),
+      getThreadsByCategory('cult'),
+      getThreadsByCategory('net')
     ]);
-    renderList('gossip', gossip);
-    renderList('music', music);
-    renderList('art', art);
+    renderList('feels', feels);
+    renderList('cult', cult);
+    renderList('net', net);
   } catch (e) { console.error('forum load:', e); }
 }
 

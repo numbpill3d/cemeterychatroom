@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /js/config.js
+
+Sitemap: https://cemeterychatroom.web.app/sitemap.xml

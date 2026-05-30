@@ -6,7 +6,9 @@ let presenceCb = null;
 function push() {
   if (!presenceCb || !presenceChannel) return;
   const state = presenceChannel.presenceState();
-  presenceCb(Object.values(state).flatMap(a => a));
+  // one entry per key (uid) — prevents multi-tab / stale-socket duplicates
+  const users = Object.values(state).map(presences => presences[0]).filter(Boolean);
+  presenceCb(users);
 }
 
 export function setupPresence(uid, username) {

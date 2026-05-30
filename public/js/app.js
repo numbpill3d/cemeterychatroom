@@ -135,14 +135,16 @@ const SKULL = `<span class="presence-glyph">&#x2020;</span>`;
 
 function onPresenceUpdate(users) {
   $userList.innerHTML = '';
+  const seen = new Set();
   users.forEach(u => {
+    if (!u?.username || seen.has(u.username)) return;
+    seen.add(u.username);
     const div = document.createElement('div');
     div.className = 'user';
     div.innerHTML = `${SKULL} ${esc(u.username)}`;
     $userList.appendChild(div);
   });
-  const n = users.length;
-  $userCount.textContent = `${n} online`;
+  $userCount.textContent = `${seen.size} online`;
 }
 
 // ── forum ──────────────────────────────────────────────────────────

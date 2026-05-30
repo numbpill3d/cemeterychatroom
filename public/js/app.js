@@ -150,14 +150,24 @@ function onPresenceUpdate(users) {
 // ── forum ──────────────────────────────────────────────────────────
 async function loadForum() {
   try {
-    const [feels, cult, net] = await Promise.all([
+    const [feels, cult, net, lambda, cyb, dread, layer, vis] = await Promise.all([
       getThreadsByCategory('feels'),
       getThreadsByCategory('cult'),
-      getThreadsByCategory('net')
+      getThreadsByCategory('net'),
+      getThreadsByCategory('lambda'),
+      getThreadsByCategory('cyb'),
+      getThreadsByCategory('dread'),
+      getThreadsByCategory('layer'),
+      getThreadsByCategory('vis')
     ]);
-    renderList('feels', feels);
-    renderList('cult', cult);
-    renderList('net', net);
+    renderList('feels',  feels);
+    renderList('cult',   cult);
+    renderList('net',    net);
+    renderList('lambda', lambda);
+    renderList('cyb',    cyb);
+    renderList('dread',  dread);
+    renderList('layer',  layer);
+    renderList('vis',    vis);
   } catch (e) { console.error('forum load:', e); }
 }
 

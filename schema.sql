@@ -23,7 +23,7 @@ create table messages (
 -- forum threads
 create table threads (
   id uuid default uuid_generate_v4() primary key,
-  category text not null check (category in ('feels', 'cult', 'net')),
+  category text not null check (category in ('feels', 'cult', 'net', 'lambda', 'cyb', 'dread', 'layer', 'vis')),
   title text not null,
   author_uid uuid references auth.users(id),
   author_username text not null,

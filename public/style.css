@@ -160,21 +160,22 @@ header { text-align: center; margin-bottom: 14px; }
   margin: 6px 0 6px;
   padding-bottom: 8px;
   border-bottom: 1px solid #2a1a3a;
+  font-weight: normal;
 }
-.board-id   { color: #6a5877; font-size: .95rem; letter-spacing: 1px; }
-.board-sep  { color: #3a2e48; font-size: .85rem; }
+.board-id   { color: #8e7d9b; font-size: .95rem; letter-spacing: 1px; }
+.board-sep  { color: #5a4c68; font-size: .85rem; }
 .board-name { color: #C084FC; font-size: .95rem; letter-spacing: 1px; }
 
 .user-bar {
   font-size: .78rem;
-  color: #5a4c68;
+  color: #7a6888;
   margin-bottom: 8px;
 }
-.user-bar span { color: #9a80b0; margin-right: 8px; }
+.user-bar span { color: #a890c0; margin-right: 8px; }
 .btn-inline {
   background: none;
   border: none;
-  color: #5a4c68;
+  color: #7a6888;
   font-family: 'MS Gothic', 'DotGothic16', monospace;
   font-size: .78rem;
   padding: 0;
@@ -184,14 +185,14 @@ header { text-align: center; margin-bottom: 14px; }
 
 nav { margin-bottom: 16px; border-bottom: 1px solid #1a0f24; padding-bottom: 10px; }
 .nav-link {
-  color: #7a6888;
+  color: #9a88ac;
   text-decoration: none;
   margin: 0 6px;
   font-size: .85rem;
   transition: color .15s;
   display: inline-block;
 }
-.nav-link:hover { color: #a890c0; }
+.nav-link:hover { color: #baadd0; }
 .nav-link.active { color: #C084FC; }
 
 /* ── grid ────────────────────────────────────────────────────────── */
@@ -204,11 +205,13 @@ nav { margin-bottom: 16px; border-bottom: 1px solid #1a0f24; padding-bottom: 10p
 @media (max-width: 800px) {
   .layout { grid-template-columns: 1fr; }
   .sidebar { order: -1; }
+  #irc-log { height: 380px; }
 }
 
 .main-box {
   background: rgba(5,3,8,.9);
   border: 1px solid #1d1129;
+  min-height: 500px;
 }
 .sidebar {
   background: rgba(5,3,8,.9);
@@ -218,7 +221,7 @@ nav { margin-bottom: 16px; border-bottom: 1px solid #1a0f24; padding-bottom: 10p
 
 /* ── sidebar ─────────────────────────────────────────────────────── */
 .sidebar h2 {
-  color: #7a6888;
+  color: #9a88ac;
   font-size: .78rem;
   margin: 0 0 8px;
   letter-spacing: 1px;
@@ -230,7 +233,7 @@ nav { margin-bottom: 16px; border-bottom: 1px solid #1a0f24; padding-bottom: 10p
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #9a88ac;
+  color: #a898c0;
   font-size: .82rem;
   padding: 3px 0;
   border-bottom: 1px solid #160e20;
@@ -238,13 +241,13 @@ nav { margin-bottom: 16px; border-bottom: 1px solid #1a0f24; padding-bottom: 10p
 .user:last-child { border-bottom: none; }
 .user:hover { color: #C084FC; }
 .presence-glyph {
-  color: #5a3a6a;
+  color: #7a4f8a;
   font-size: .8rem;
   flex-shrink: 0;
 }
 #sidebar-count {
   margin-top: 8px;
-  color: #4a3c58;
+  color: #6a5877;
   font-size: .72rem;
   border-top: 1px solid #1d1129;
   padding-top: 8px;

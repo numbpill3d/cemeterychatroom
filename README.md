@@ -35,8 +35,9 @@ see [SETUP.md](SETUP.md) for the full walkthrough. short version:
 1. create a supabase project at supabase.com (free, no credit card)
 2. run `schema.sql` in the supabase sql editor
 3. turn off email confirmation in supabase auth settings
-4. paste your supabase url and anon key into `public/js/config.js`
-5. `firebase deploy --only hosting --project <your-project-id>`
+4. copy `public/js/config.example.js` to `public/js/config.js`
+5. paste your supabase url and anon key into `public/js/config.js`
+6. `firebase deploy --only hosting --project <your-project-id>`
 
 or drop the `public/` folder on netlify.com/drop — supabase works from any host.
 
@@ -51,4 +52,4 @@ cd public
 python3 -m http.server 8080
 ```
 
-then open `localhost:8080`. requires `public/js/config.js` to be filled in with real supabase credentials.
+then open `localhost:8080`. requires `public/js/config.js` to exist and contain real supabase credentials.

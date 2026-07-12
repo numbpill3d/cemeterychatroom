@@ -36,7 +36,7 @@ supabase dashboard → project settings → api:
 - copy `project url`
 - copy `anon public` key
 
-paste both into `public/js/config.js`.
+copy `public/js/config.example.js` to `public/js/config.js`, then paste both into `public/js/config.js`.
 
 ---
 

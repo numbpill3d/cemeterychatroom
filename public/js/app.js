@@ -2,6 +2,7 @@ import { onAuth, signUp, signIn, logOut } from './auth.js';
 import { initChat, sendMessage, destroyChatListener } from './chat.js';
 import { getThreadsByCategory, getPosts, createThread, createPost } from './forum.js';
 import { setupPresence, teardownPresence, subscribeToPresence } from './presence.js';
+import { checkBackendHealth } from './supabase.js';
 
 // ── state ──────────────────────────────────────────────────────────
 let currentUser = null;
@@ -9,6 +10,7 @@ let currentThread = null;
 let currentThreadTitle = '';
 let presenceUnsub = null;
 let chatPostNum = 0;
+let bootstrappedUserId = null;
 
 // ── dom ────────────────────────────────────────────────────────────
 const $loading     = document.getElementById('loading-screen');
@@ -35,6 +37,16 @@ const $signupForm  = document.getElementById('signup-form');
 const $loginError  = document.getElementById('login-error');
 const $signupError = document.getElementById('signup-error');
 
+function setAuthFormsEnabled(enabled) {
+  document.querySelectorAll('#auth-overlay input, #auth-overlay .auth-submit').forEach(el => {
+    el.disabled = !enabled;
+  });
+  document.querySelectorAll('#auth-overlay .auth-submit').forEach(el => {
+    if (!el.dataset.label) el.dataset.label = el.textContent;
+    el.textContent = enabled ? el.dataset.label : '[backend offline]';
+  });
+}
+
 // ── helpers ────────────────────────────────────────────────────────
 function esc(s) {
   if (!s) return '';
@@ -59,23 +71,58 @@ function fmtTime(ts) {
 }
 
 // ── auth state ─────────────────────────────────────────────────────
-onAuth(async (user) => {
+function resetAppState() {
+  teardownPresence();
+  destroyChatListener();
+  if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
+  chatPostNum = 0;
+}
+
+function showFatalAuthError(message) {
   $loading.style.display = 'none';
-  if (user) {
-    currentUser = user;
-    $authOverlay.style.display = 'none';
-    $app.style.display = '';
-    initApp();
-  } else {
-    if (currentUser) teardownPresence();
-    currentUser = null;
-    chatPostNum = 0;
-    destroyChatListener();
-    if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
-    $app.style.display = 'none';
-    $authOverlay.style.display = 'flex';
+  $authOverlay.style.display = 'flex';
+  $app.style.display = 'none';
+  setAuthFormsEnabled(false);
+  $loginError.textContent = message;
+  $signupError.textContent = message;
+}
+
+function bindAuthState() {
+  onAuth(async (user) => {
+    $loading.style.display = 'none';
+    if (user) {
+      if (bootstrappedUserId === user.id) return;
+      resetAppState();
+      currentUser = user;
+      bootstrappedUserId = user.id;
+      $authOverlay.style.display = 'none';
+      $app.style.display = '';
+      initApp();
+    } else {
+      resetAppState();
+      currentUser = null;
+      bootstrappedUserId = null;
+      $app.style.display = 'none';
+      $authOverlay.style.display = 'flex';
+      setAuthFormsEnabled(true);
+    }
+  });
+}
+
+async function boot() {
+  const backend = await checkBackendHealth();
+  if (!backend.ok) {
+    const message = backend.kind === 'network'
+      ? 'auth backend is offline or misconfigured. update public/js/config.js with a live supabase project.'
+      : backend.message;
+    showFatalAuthError(message);
+    console.error('backend health:', backend);
+    return;
   }
-});
+  bindAuthState();
+}
+
+boot();
 
 function initApp() {
   const username = getUsername(currentUser);
@@ -89,11 +136,21 @@ function initApp() {
 // ── navigation ─────────────────────────────────────────────────────
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  document.querySelectorAll('.nav-link').forEach(a =>
-    a.classList.toggle('active', a.dataset.page === id)
-  );
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+
+  document.querySelectorAll('.nav-link').forEach(a => {
+    const isActive = a.dataset.page === id;
+    a.classList.toggle('active', isActive);
+    if (isActive) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  });
+
+  // update title for SEO/UX
+  const titles = { home: 'chat', forum: 'boards', about: 'keeper', links: 'graves' };
+  document.title = `/goth/ — ${titles[id] || 'cemetery chatroom'}`;
+
+  window.scrollTo({ top: 0, behavior: 'auto' });
   if (id === 'forum') loadForum();
 }
 
@@ -103,7 +160,8 @@ document.querySelectorAll('.nav-link').forEach(l => {
 
 // ── chat ───────────────────────────────────────────────────────────
 function onChatMessage(msg) {
-  const near = $ircLog.scrollHeight - $ircLog.clientHeight - $ircLog.scrollTop < 60;
+  if (!$ircLog) return;
+  const near = $ircLog.scrollHeight - $ircLog.clientHeight - $ircLog.scrollTop < 100;
   chatPostNum++;
 
   const post = document.createElement('div');
@@ -111,13 +169,17 @@ function onChatMessage(msg) {
   post.innerHTML =
     `<div class="chan-meta">` +
       `<span class="chan-name">${esc(msg.post_name || msg.username)}</span>` +
-      `<span class="chan-stamp">${chanDate(msg.created_at)}</span>` +
+      `<span class="chan-stamp" title="${new Date(msg.created_at).toLocaleString()}">${chanDate(msg.created_at)}</span>` +
       `<span class="chan-num">No.${chatPostNum}</span>` +
     `</div>` +
     `<div class="chan-body">${esc(msg.text)}</div>`;
 
   $ircLog.appendChild(post);
-  if (near || chatPostNum <= 15) $ircLog.scrollTop = $ircLog.scrollHeight;
+  
+  // limit visible messages to 100 for performance
+  if ($ircLog.children.length > 100) $ircLog.removeChild($ircLog.firstChild);
+
+  if (near || chatPostNum <= 10) $ircLog.scrollTop = $ircLog.scrollHeight;
 }
 
 $ircForm.addEventListener('submit', async e => {
@@ -301,6 +363,8 @@ $logoutBtn.addEventListener('click', () => logOut());
 
 function friendlyError(msg) {
   if (!msg) return 'something went wrong';
+  if (msg.includes('Failed to fetch')) return 'auth backend is offline or misconfigured';
+  if (msg.includes('fetch')) return 'network error talking to auth backend';
   if (msg.includes('Invalid login')) return 'not found in the dark';
   if (msg.includes('Email not confirmed')) return 'check your email to confirm';
   if (msg.includes('already registered')) return 'that email is already here';

@@ -53,38 +53,57 @@
 <link rel="preconnect" href="https://esm.sh">
 <link rel="preconnect" href="https://cemeterychatroom.firebaseapp.com">
 <link rel="dns-prefetch" href="https://cemeterychatroom.firebaseapp.com">
-<link rel="dns-prefetch" href="https://i.ibb.co">
-
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <script>
-  // background rotation — picks a random image, rotates every 3 hours
+  // Local background rotation — advances every three hours and on request.
   (function() {
     var IMGS = [
-      'https://i.ibb.co/jZMCsyKH/ae03fc6fc2b42feff724d1803ac401ca.jpg',
-      'https://i.ibb.co/M5JfywZV/7a7bd222f5cfdd5658c443ad8a5248f0.jpg',
-      'https://i.ibb.co/gLVWmhsp/ac52ec7802c7fa2f6f9f9706e046d7ce.jpg',
-      'https://i.ibb.co/RkXx0Z3B/a948e91145241546d14982ba1dc645ed.jpg',
-      'https://i.ibb.co/hF0VnmMQ/cafab89f102b9c37eb19b2c63e98f724.jpg',
-      'https://i.ibb.co/G3QT4RFn/e88d556de703f68a0901e66a4202e054.gif'
+      'images/backgrounds/15f2f10744185187a49eaf59ad5ed0a0.jpg',
+      'images/backgrounds/1c2d83bb2e76b51ee0e3c56a416e6188.jpg',
+      'images/backgrounds/4b9574d18931c21442ee21ba7131f904.jpg',
+      'images/backgrounds/4d19d36fda6bc0e9503352f158670106.jpg',
+      'images/backgrounds/6cb0bc3add802a513ec358684be16dc4.jpg',
+      'images/backgrounds/82b1412dc56f87eaa8626e33006784fa.jpg',
+      'images/backgrounds/8a30bcfdcefe3615533dfcb2723a9527.jpg',
+      'images/backgrounds/b8651b15edfe33add1a03c5a5ae6b682.jpg',
+      'images/backgrounds/d7fa15b8847ff75beb19b548d710c0c6.jpg',
+      'images/backgrounds/d8348768b123abe6005e3ba4e617703c.jpg',
+      'images/backgrounds/e7c181c23ac81ce1b88e4a7c9b644c10.jpg',
+      'images/backgrounds/f1660c10f5feb20e106beca47bde82fa.jpg'
     ];
     var INTERVAL = 3 * 60 * 60 * 1000;
-    var stored   = localStorage.getItem('bg_idx');
-    var lastTime = parseInt(localStorage.getItem('bg_time') || '0');
+    var stored = null;
+    var lastTime = 0;
+    try {
+      stored = localStorage.getItem('bg_idx');
+      lastTime = parseInt(localStorage.getItem('bg_time') || '0', 10);
+    } catch (_) {}
     var now      = Date.now();
     var idx;
     if (stored === null || (now - lastTime) > INTERVAL) {
-      var prev = stored !== null ? parseInt(stored) : -1;
-      do { idx = Math.floor(Math.random() * IMGS.length); } while (idx === prev && IMGS.length > 1);
-      localStorage.setItem('bg_idx',  String(idx));
-      localStorage.setItem('bg_time', String(now));
+      var prev = stored !== null ? parseInt(stored, 10) : -1;
+      idx = (Number.isFinite(prev) ? prev + 1 : 0) % IMGS.length;
     } else {
-      idx = parseInt(stored);
-      if (idx < 0 || idx >= IMGS.length) idx = 0;
+      idx = parseInt(stored, 10);
+      if (!Number.isFinite(idx) || idx < 0 || idx >= IMGS.length) idx = 0;
     }
-    document.body.style.backgroundImage = "url('" + IMGS[idx] + "')";
+
+    function showBackground(nextIdx) {
+      idx = (nextIdx + IMGS.length) % IMGS.length;
+      document.body.style.backgroundImage = "url('" + IMGS[idx] + "')";
+      try {
+        localStorage.setItem('bg_idx', String(idx));
+        localStorage.setItem('bg_time', String(Date.now()));
+      } catch (_) {}
+      var preload = new Image();
+      preload.src = IMGS[(idx + 1) % IMGS.length];
+    }
+
+    window.cycleCemeteryBackground = function() { showBackground(idx + 1); };
+    showBackground(idx);
   })();
 </script>
 
@@ -122,10 +141,13 @@
 <div id="app" style="display:none">
   <audio id="sigh" preload="auto" src="https://cdn.freesound.org/previews/399/399642_7037-lq.mp3"></audio>
 
-  <img class="candle top-left"     src="https://media4.giphy.com/media/4n1kDOsXgfrhMXn5LL/giphy.gif" alt="">
-  <img class="candle top-right"    src="https://media4.giphy.com/media/4n1kDOsXgfrhMXn5LL/giphy.gif" alt="">
-  <img class="candle bottom-left"  src="https://media4.giphy.com/media/4n1kDOsXgfrhMXn5LL/giphy.gif" alt="">
-  <img class="candle bottom-right" src="https://media4.giphy.com/media/4n1kDOsXgfrhMXn5LL/giphy.gif" alt="">
+  <div class="candle-row" aria-hidden="true">
+    <img class="candle" src="images/candle.gif" alt="">
+    <img class="candle" src="images/candle.gif" alt="">
+    <img class="candle" src="images/candle.gif" alt="">
+    <img class="candle" src="images/candle.gif" alt="">
+    <img class="candle" src="images/candle.gif" alt="">
+  </div>
   <div class="scanlines"></div>
 
   <div class="wrap">
@@ -349,7 +371,10 @@
       </aside>
     </main>
 
-    <footer>forever online since 2003 &mdash; we never log off</footer>
+    <footer>
+      forever online since 2003 &mdash; we never log off
+      <button type="button" class="scene-btn" onclick="cycleCemeteryBackground()">[change scene]</button>
+    </footer>
   </div>
 </div><!-- /app -->
 

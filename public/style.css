@@ -33,20 +33,48 @@ a, button { cursor: crosshair; }
   mix-blend-mode: screen;
 }
 
-/* ── candles ─────────────────────────────────────────────────────── */
-.candle {
+/* ── candle procession ───────────────────────────────────────────── */
+.candle-row {
   position: fixed;
-  width: 52px;
-  height: 52px;
+  left: 0;
+  right: 0;
+  bottom: -9px;
   z-index: 10;
   pointer-events: none;
-  opacity: .6;
-  filter: brightness(.7) drop-shadow(0 0 8px rgba(192,132,252,.2));
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  padding: 0 2vw;
 }
-.top-left    { top: 6px; left: 6px; }
-.top-right   { top: 6px; right: 6px; transform: scaleX(-1); }
-.bottom-left { bottom: 6px; left: 6px; }
-.bottom-right{ bottom: 6px; right: 6px; transform: scaleX(-1); }
+
+.candle {
+  width: clamp(110px, 14vw, 180px);
+  height: auto;
+  flex: 0 1 auto;
+  opacity: .72;
+  mix-blend-mode: screen;
+  filter: brightness(.82) saturate(.9) drop-shadow(0 0 9px rgba(255,96,40,.2));
+  animation: candle-float 5.8s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+.candle:nth-child(2) { animation-delay: -1.4s; }
+.candle:nth-child(3) { animation-delay: -2.9s; }
+.candle:nth-child(4) { animation-delay: -4.3s; }
+.candle:nth-child(5) { animation-delay: -2.1s; }
+
+@keyframes candle-float {
+  0%, 100% { transform: translateY(3px); }
+  50% { transform: translateY(-5px); }
+}
+
+@media (max-width: 560px) {
+  .candle-row { padding: 0; }
+  .candle { width: 19vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .candle { animation: none; }
+}
 
 /* ── loading screen ──────────────────────────────────────────────── */
 .loading-screen {
@@ -511,4 +539,21 @@ footer {
   color: #3a2e48;
   font-size: .72rem;
   letter-spacing: 1px;
+}
+
+.scene-btn {
+  display: block;
+  margin: 7px auto 0;
+  padding: 2px 5px;
+  border: 0;
+  background: transparent;
+  color: #625170;
+  font: inherit;
+  letter-spacing: inherit;
+}
+.scene-btn:hover,
+.scene-btn:focus-visible {
+  color: #C084FC;
+  outline: 1px dotted #7a4fa8;
+  outline-offset: 2px;
 }

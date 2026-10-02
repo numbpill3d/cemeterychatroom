@@ -13,7 +13,7 @@ a small social space built around a chan-board aesthetic. dark purple palette, M
 - **home** — real-time chatboard. posts show name, chan-style timestamp, and post number. name field lets you post under any name per message
 - **forum** — three categories (graveyard gossip, music crypt, art and poetry). threads, replies, last-post tracking
 - **sidebar** — live online user list via supabase realtime presence
-- **background** — rotates randomly between six images every three hours, persisted in localStorage
+- **background** — cycles through twelve locally hosted cemetery images every three hours (or on demand), persisted in localStorage
 
 ---
 

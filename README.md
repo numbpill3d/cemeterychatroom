@@ -11,7 +11,7 @@ gothic imageboard-style social site. real-time chat, forum, and live presence.
 a small social space built around a chan-board aesthetic. dark purple palette, MS Gothic font, scanlines. users sign up with a username, post in the live chat, and discuss things in the forum.
 
 - **home** — real-time chatboard. posts show name, chan-style timestamp, and post number. name field lets you post under any name per message
-- **forum** — three categories (graveyard gossip, music crypt, art and poetry). threads, replies, last-post tracking
+- **forum** — eight boards (/feels/, /cult/, /net/, /λ/, /cyb/, /dread/, /layer/, /vis/). threads, replies, last-post tracking. shows "no threads yet" until real people post — no seeded content.
 - **sidebar** — live online user list via supabase realtime presence
 - **background** — cycles through twelve locally hosted cemetery images every three hours (or on demand), persisted in localStorage
 

@@ -161,6 +161,8 @@ document.querySelectorAll('.nav-link').forEach(l => {
 // ── chat ───────────────────────────────────────────────────────────
 function onChatMessage(msg) {
   if (!$ircLog) return;
+  const empty = $ircLog.querySelector('.empty-row');
+  if (empty) empty.remove();
   const near = $ircLog.scrollHeight - $ircLog.clientHeight - $ircLog.scrollTop < 100;
   chatPostNum++;
 
@@ -206,7 +208,14 @@ function onPresenceUpdate(users) {
     div.innerHTML = `${SKULL} ${esc(u.username)}`;
     $userList.appendChild(div);
   });
-  $userCount.textContent = `${seen.size} online`;
+  if (seen.size === 0) {
+    $userList.innerHTML = '<div class="user Dim">the graveyard is quiet</div>';
+    $userCount.textContent = 'nobody here yet';
+  } else if (seen.size === 1) {
+    $userCount.textContent = '1 online — just you';
+  } else {
+    $userCount.textContent = `${seen.size} online now`;
+  }
 }
 
 // ── forum ──────────────────────────────────────────────────────────

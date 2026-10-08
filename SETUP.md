@@ -45,7 +45,7 @@ copy `public/js/config.example.js` to `public/js/config.js`, then paste both int
 ### option a: firebase hosting (already configured)
 
 ```bash
-cd ~/Documents/DEVELOPMENT/cemeterychatroom
+cd /path/to/cemeterychatroom
 firebase deploy --only hosting
 ```
 
